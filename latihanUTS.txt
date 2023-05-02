@@ -1,0 +1,69 @@
+Laravel installation 
+composer create-project laravel/Laravel namaProject
+-------------------------------------------------------------------------
+membuat controller (app --> http --> controllers)
+php artisan make:controller namaController
+-------------------------------------------------------------------------
+php artisan make:controller namaBimbingan
+
+    public function listbimbingan(){
+
+        $hasil = DB::SELECT("SELECT mahasiswa.nama, mahasiswa.npm, mahasiswa.no_hp, bimbingan.jenis_bimbingan, bimbingan.materi_bimbingan, bimbingan.tanggal_bimbingan, dosen.kode_dosen, dosen.nama_dosen FROM mahasiswa inner join bimbingan on mahasiswa.npm = bimbingan.mahasiswa_id inner join dosen on dosen.kode_dosen = bimbingan.dosen_id" );
+        //dd($hasil);
+        return view('listbimbingan', ['allbimbingan' => $hasil]);
+
+    }
+-------------------------------------------------------------------------
+di file .env
+DB_DATABASE=nama_database
+-------------------------------------------------------------------------
+4 perintah migrate 
+-php artisan migrate
+-php artisan migrate:reset
+-php artisan migrate:refresh
+-php artisan migrate:rollback --step=1
+
+membuat migration (database --> migration)
+php artisan make:migration create_nama_table -- create=namaTabel
+-------------------------------------------------------------------------
+php artisan make:migration create_mahasiswa_table -- create=mahasiswa
+
+    $table->char('npm', 11)->unique();
+    $table->string('nama');
+    $table->string('no_hp', 14);
+-------------------------------------------------------------------------
+php artisan make:migration create_dosen_table -- create=dosen
+
+    $table->char('kode_dosen', 6)->unique();
+    $table->string('nama_dosen');
+    $table->string('email');
+-------------------------------------------------------------------------
+php artisan make:migration create_bimbingan_table -- create=bimbingan
+
+    $table->foreignId('mahasiswa_id')->constrained('npm')->on('mahasiswa')->onUpdate('cascade')->onDelete('cascade');
+    $table->foreignId('dosen_id')->constrained('kode_dosen')->on('dosen')->onUpdate('cascade')->onDelete('cascade');
+    $table->string('jenis_bimbingan', 20);
+    $table->string('materi_bimbingan');
+    $table->date('tanggal_bimbingan');
+    $table->text('catatan_dosen');
+-------------------------------------------------------------------------
+di routes --> web
+
+use App\Http\Controllers\ControllerBimbingan;
+Route::get("/listbimbingan", [ControllerBimbingan::class, 'listbimbingan']);
+-------------------------------------------------------------------------
+di resource --> view --> buat blade baru
+    <table>
+        <thead>
+            <th>Nama Mahasiswa</th><th>NPM</th><th>Nomor Handphone</th><th>Jenis Bimbingan</th><th>Materi Bimbingan</th><th>Tanggal Bimbingan</th><th>Kode Dosen</th><th>Nama Dosen</th>
+        </thead>
+        <tbody>
+            @foreach ($allbimbingan as $item)
+            <tr>
+                <td>{{$item->nama}}</td><td>{{$item->npm}}</td><td>{{$item->no_hp}}</td><td>{{$item->jenis_bimbingan}}</td><td>{{$item->materi_bimbingan}}</td><td>{{$item->tanggal_bimbingan}}</td><td>{{$item->kode_dosen}}</td><td>{{$item->nama_dosen}}</td>
+            </tr>
+
+        @endforeach
+        </tbody>
+
+    </table>
